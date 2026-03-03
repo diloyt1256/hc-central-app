@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>HC Central – HC Care Technologies</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --blue:#1a73e8;--blue-dark:#1558b0;--blue-light:#e8f0fe;
+  --green:#34a853;--green-light:#e6f4ea;
+  --text:#1f1f1f;--sub:#5f6368;--border:#e8eaed;
+  --white:#fff;--bg:#fafafa;
+  --shadow:0 2px 12px rgba(0,0,0,.10);
+  --r:16px;
+}
+html{scroll-behavior:smooth;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);max-width:600px;margin:0 auto;min-width:267px;overflow-x:hidden;}
+
+/* ── DROPDOWN MENU ── */
+.dropdown-menu{position:fixed;top:52px;right:calc(50% - min(300px, 50vw));z-index:200;background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.14);min-width:200px;padding:6px;overflow:hidden;opacity:0;transform:translateY(-8px) scale(.97);pointer-events:none;transition:opacity .22s,transform .22s;}
+.dropdown-menu.open{opacity:1;transform:none;pointer-events:all;}
+.dd-item{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:9px;font-size:13px;font-weight:500;color:var(--text);cursor:pointer;transition:background .15s;text-decoration:none;}
+.dd-item:hover{background:var(--blue-light);color:var(--blue);}
+.dd-divider{height:1px;background:var(--border);margin:4px 0;}
+.dd-download{color:var(--blue);font-weight:600;}
+.dd-overlay{position:fixed;inset:0;z-index:199;display:none;}
+.dd-overlay.open{display:block;}
+
+/* ── STICKY TOP BAR ── */
+.topbar{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:13px 18px;display:flex;align-items:center;justify-content:space-between;}
+.topbar-logo{font-size:16px;font-weight:700;color:var(--blue);letter-spacing:-.3px;}
+.topbar-menu{background:none;border:none;cursor:pointer;padding:4px;display:flex;align-items:center;border-radius:8px;transition:background .2s;}
+.topbar-menu:hover{background:var(--blue-light);}
+
+/* ── HEADER ── */
+.header{background:var(--white);padding:24px 18px 20px;border-bottom:1px solid var(--border);opacity:0;transform:translateY(16px);transition:opacity .5s,transform .5s;}
+.header.visible{opacity:1;transform:none;}
+.header-top{display:flex;gap:16px;align-items:flex-start;margin-bottom:20px;}
+.app-icon{width:80px;height:80px;flex-shrink:0;border-radius:22px;background:var(--white);border:1.5px solid var(--border);box-shadow:0 4px 18px rgba(0,0,0,.13);overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.app-icon img{width:100%;height:100%;object-fit:cover;border-radius:22px;}
+.header-info{flex:1;min-width:0;}
+.app-name{font-size:22px;font-weight:800;letter-spacing:-.4px;line-height:1.2;color:var(--text);}
+.dev-name{font-size:13px;color:var(--blue);font-weight:500;margin-top:3px;}
+.rating-row{display:flex;align-items:center;gap:6px;margin-top:8px;}
+.stars{display:flex;gap:1px;}
+.rating-num{font-size:13px;font-weight:600;color:var(--sub);}
+.badge{background:var(--green-light);color:var(--green);font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;margin-left:4px;}
+.install-btn{width:100%;padding:15px;background:var(--blue);color:#fff;font-family:'Inter',sans-serif;font-size:16px;font-weight:700;border:none;border-radius:14px;cursor:pointer;letter-spacing:.2px;position:relative;overflow:hidden;transition:background .2s,transform .15s,box-shadow .2s;box-shadow:0 4px 14px rgba(26,115,232,.35);}
+.install-btn:hover{background:var(--blue-dark);box-shadow:0 6px 20px rgba(26,115,232,.45);}
+.install-btn:active{transform:scale(.97);}
+.ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.35);transform:scale(0);animation:ripple .5s linear;}
+@keyframes ripple{to{transform:scale(4);opacity:0;}}
+.install-btn-inner{display:flex;align-items:center;justify-content:center;gap:8px;}
+
+/* ── STATS ROW ── */
+.stats-wrap{background:var(--white);border-bottom:1px solid var(--border);padding:0 4px;opacity:0;transition:opacity .5s .1s,transform .5s .1s;transform:translateY(16px);}
+.stats-wrap.visible{opacity:1;transform:none;}
+.stats-row{display:flex;overflow-x:auto;gap:0;padding:6px 8px;scrollbar-width:none;}
+.stats-row::-webkit-scrollbar{display:none;}
+.stat{flex:0 0 auto;padding:12px 16px;text-align:center;border-right:1px solid var(--border);}
+.stat:last-child{border-right:none;}
+.stat-val{font-size:15px;font-weight:700;color:var(--text);}
+.stat-lbl{font-size:10px;color:var(--sub);margin-top:2px;text-transform:uppercase;letter-spacing:.5px;}
+
+/* ── SECTION SHARED ── */
+.section{background:var(--white);margin-top:10px;padding:20px 18px;opacity:0;transform:translateY(20px);transition:opacity .5s,transform .5s;}
+.section.visible{opacity:1;transform:none;}
+.sec-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.sec-title svg{flex-shrink:0;}
+
+/* ── SCREENSHOTS ── */
+.screenshots-wrap{background:var(--white);margin-top:10px;padding:20px 0 20px;opacity:0;transform:translateY(20px);transition:opacity .5s,transform .5s;}
+.screenshots-wrap.visible{opacity:1;transform:none;}
+.sec-title-pad{padding:0 18px;}
+.shots-scroll{display:flex;gap:14px;overflow-x:auto;padding:8px 18px 12px;scroll-snap-type:x mandatory;scrollbar-width:none;}
+.shots-scroll::-webkit-scrollbar{display:none;}
+.shot-frame{flex:0 0 140px;scroll-snap-align:start;border-radius:18px;background:#1a1a2e;box-shadow:0 6px 24px rgba(0,0,0,.18);overflow:hidden;aspect-ratio:9/18;position:relative;transition:transform .3s;}
+.shot-frame:hover{transform:translateY(-4px);}
+.shot-inner{width:100%;height:100%;display:flex;flex-direction:column;}
+.shot-status{height:22px;background:#111;display:flex;align-items:center;justify-content:flex-end;padding:0 10px;}
+.shot-status-dot{width:5px;height:5px;border-radius:50%;background:#34a853;margin-left:4px;}
+.shot-body{flex:1;display:flex;flex-direction:column;padding:10px 8px 8px;}
+.shot-topbar{height:28px;background:var(--blue);border-radius:8px;margin-bottom:8px;display:flex;align-items:center;padding:0 8px;gap:5px;}
+.shot-topbar-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.5);}
+.shot-topbar-line{flex:1;height:4px;background:rgba(255,255,255,.4);border-radius:2px;}
+.shot-card{background:rgba(255,255,255,.07);border-radius:6px;margin-bottom:5px;padding:6px 7px;}
+.shot-card-title{height:4px;background:rgba(255,255,255,.6);border-radius:2px;width:60%;margin-bottom:4px;}
+.shot-card-sub{height:3px;background:rgba(255,255,255,.25);border-radius:2px;width:80%;}
+.shot-card-badge{height:5px;background:var(--green);border-radius:2px;width:30%;margin-top:4px;}
+.shot-card-badge.urgent{background:#ea4335;}
+.shot-card-badge.pending{background:#fbbc04;}
+.shot-fab{position:absolute;bottom:16px;right:12px;width:28px;height:28px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;}
+.shot-label{text-align:center;font-size:10px;color:var(--sub);margin-top:6px;font-weight:500;}
+
+/* ── ABOUT ── */
+.about-text{font-size:14px;color:#444;line-height:1.7;}
+.about-text.collapsed{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;}
+.read-more-btn{background:none;border:none;color:var(--blue);font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;padding:6px 0 0;display:block;}
+
+/* ── FEATURES ── */
+.features-grid{display:flex;flex-direction:column;gap:10px;}
+.feat-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:14px 14px;display:flex;gap:12px;align-items:flex-start;transition:transform .2s,box-shadow .2s;}
+.feat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow);}
+.feat-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.feat-icon.blue{background:var(--blue-light);}
+.feat-icon.green{background:var(--green-light);}
+.feat-icon.orange{background:#fff3e0;}
+.feat-icon.purple{background:#f3e8fd;}
+.feat-icon.teal{background:#e0f7fa;}
+.feat-icon.red{background:#fce8e6;}
+.feat-body{}
+.feat-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px;}
+.feat-desc{font-size:12px;color:var(--sub);line-height:1.5;}
+
+/* ── SECURITY ── */
+.security-card{background:linear-gradient(135deg,#e8f0fe 0%,#e6f4ea 100%);border:1px solid #c5d8fb;border-radius:var(--r);padding:18px 16px;display:flex;gap:14px;align-items:center;}
+.security-text h4{font-size:14px;font-weight:700;color:var(--text);}
+.security-text p{font-size:12px;color:var(--sub);margin-top:3px;line-height:1.5;}
+
+/* ── DEVELOPER INFO ── */
+.dev-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;display:flex;align-items:center;gap:14px;}
+.dev-avatar{width:44px;height:44px;border-radius:12px;background:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.dev-card-name{font-size:13px;font-weight:700;color:var(--text);}
+.dev-card-sub{font-size:12px;color:var(--sub);margin-top:2px;}
+
+/* ── STICKY BOTTOM CTA ── */
+.bottom-cta{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:600px;min-width:267px;background:rgba(255,255,255,.95);backdrop-filter:blur(12px);border-top:1px solid var(--border);padding:12px 18px calc(12px + env(safe-area-inset-bottom));z-index:99;}
+.bottom-cta-btn{width:100%;padding:14px;background:var(--blue);color:#fff;font-family:'Inter',sans-serif;font-size:15px;font-weight:700;border:none;border-radius:14px;cursor:pointer;position:relative;overflow:hidden;transition:background .2s,transform .15s;box-shadow:0 4px 14px rgba(26,115,232,.35);display:flex;align-items:center;justify-content:center;gap:8px;}
+.bottom-cta-btn:hover{background:var(--blue-dark);}
+.bottom-cta-btn:active{transform:scale(.97);}
+.page-bottom-pad{height:80px;}
+
+/* ── SCROLL REVEAL DELAYS ── */
+.delay1{transition-delay:.05s!important;}
+.delay2{transition-delay:.1s!important;}
+.delay3{transition-delay:.15s!important;}
+.delay4{transition-delay:.2s!important;}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(10px);background:#1f1f1f;color:#fff;padding:10px 20px;border-radius:24px;font-size:13px;font-weight:500;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;z-index:200;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <span class="topbar-logo">HC Central</span>
+  <button class="topbar-menu" aria-label="Menu" onclick="toggleMenu()">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5f6368" stroke-width="2.2" stroke-linecap="round">
+      <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </button>
+</header>
+
+<!-- DROPDOWN MENU -->
+<div class="dropdown-menu" id="dropdownMenu">
+  <a class="dd-item" onclick="scrollTo('sec-header');closeMenu()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M7 21v-1a5 5 0 0 1 10 0v1"/></svg>
+    App Overview
+  </a>
+  <a class="dd-item" onclick="scrollTo('sec-shots');closeMenu()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+    Screenshots
+  </a>
+  <a class="dd-item" onclick="scrollTo('sec-features');closeMenu()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+    Features
+  </a>
+  <a class="dd-item" onclick="scrollTo('sec-security');closeMenu()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    Security
+  </a>
+  <a class="dd-item" onclick="scrollTo('sec-dev');closeMenu()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+    Developer
+  </a>
+  <div class="dd-divider"></div>
+  <a class="dd-item dd-download" onclick="downloadAPK(document.querySelector('.bottom-cta-btn'));closeMenu()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    Download APK
+  </a>
+</div>
+</header>
+
+<!-- APP HEADER -->
+<section class="header reveal" id="sec-header">
+  <div class="header-top">
+    <div class="app-icon">
+      <img src="https://jdkartshop.in/wp-content/uploads/2026/03/hc-central-1.png" alt="HC Central Icon" loading="lazy"/>
+    </div>
+    <div class="header-info">
+      <div class="app-name">HC Central</div>
+      <div class="dev-name">HC Care Technologies</div>
+      <div class="rating-row">
+        <div class="stars" aria-label="4.8 stars">
+          <!-- 4 full + 1 partial star -->
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="#fbbc04"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="#fbbc04"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="#fbbc04"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="#fbbc04"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24"><defs><linearGradient id="hg"><stop offset="80%" stop-color="#fbbc04"/><stop offset="80%" stop-color="#e0e0e0"/></linearGradient></defs><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="url(#hg)"/></svg>
+        </div>
+        <span class="rating-num">4.8</span>
+        <span class="badge">Top Rated</span>
+      </div>
+    </div>
+  </div>
+  <button class="install-btn" onclick="downloadAPK(this)" aria-label="Download HC Central APK">
+    <div class="install-btn-inner">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Download APK &nbsp;·&nbsp; Free
+    </div>
+  </button>
+</section>
+
+<!-- STATS ROW -->
+<div class="stats-wrap reveal delay1" id="sec-stats">
+  <div class="stats-row">
+    <div class="stat">
+      <div class="stat-val" style="color:#fbbc04;">4.8 ★</div>
+      <div class="stat-lbl">Rating</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">1K+</div>
+      <div class="stat-lbl">Downloads</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">1.0.0</div>
+      <div class="stat-lbl">Version</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">7.5 MB</div>
+      <div class="stat-lbl">Size</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">8.0+</div>
+      <div class="stat-lbl">Android</div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREENSHOTS -->
+<div class="screenshots-wrap reveal delay2" id="sec-shots">
+  <div class="sec-title sec-title-pad">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+    Screenshots
+  </div>
+  <div class="shots-scroll">
+    <!-- Screenshot 1: Dashboard -->
+    <div>
+      <div class="shot-frame">
+        <div class="shot-inner">
+          <div class="shot-status"><div class="shot-status-dot"></div></div>
+          <div class="shot-body">
+            <div class="shot-topbar"><div class="shot-topbar-dot"></div><div class="shot-topbar-line"></div></div>
+            <div class="shot-card"><div class="shot-card-title"></div><div class="shot-card-sub"></div><div class="shot-card-badge"></div></div>
+            <div class="shot-card"><div class="shot-card-title" style="width:45%"></div><div class="shot-card-sub" style="width:70%"></div><div class="shot-card-badge urgent"></div></div>
+            <div class="shot-card"><div class="shot-card-title" style="width:55%"></div><div class="shot-card-sub"></div><div class="shot-card-badge pending"></div></div>
+            <div class="shot-card"><div class="shot-card-title" style="width:50%"></div><div class="shot-card-sub" style="width:60%"></div><div class="shot-card-badge"></div></div>
+          </div>
+        </div>
+        <div class="shot-fab">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
+      </div>
+      <div class="shot-label">Dashboard</div>
+    </div>
+    <!-- Screenshot 2: Service Calls -->
+    <div>
+      <div class="shot-frame">
+        <div class="shot-inner">
+          <div class="shot-status"><div class="shot-status-dot"></div></div>
+          <div class="shot-body">
+            <div class="shot-topbar" style="background:#1558b0;"><div class="shot-topbar-line"></div><div class="shot-topbar-dot"></div></div>
+            <div style="display:flex;gap:4px;margin-bottom:6px;">
+              <div style="flex:1;height:22px;background:#ea4335;border-radius:6px;display:flex;align-items:center;justify-content:center;">
+                <div style="height:3px;width:50%;background:rgba(255,255,255,.7);border-radius:2px;"></div>
+              </div>
+              <div style="flex:1;height:22px;background:#fbbc04;border-radius:6px;display:flex;align-items:center;justify-content:center;">
+                <div style="height:3px;width:50%;background:rgba(255,255,255,.7);border-radius:2px;"></div>
+              </div>
+              <div style="flex:1;height:22px;background:#34a853;border-radius:6px;display:flex;align-items:center;justify-content:center;">
+                <div style="height:3px;width:50%;background:rgba(255,255,255,.7);border-radius:2px;"></div>
+              </div>
+            </div>
+            <div class="shot-card"><div class="shot-card-title"></div><div class="shot-card-sub"></div><div class="shot-card-badge urgent"></div></div>
+            <div class="shot-card"><div class="shot-card-title" style="width:70%"></div><div class="shot-card-sub"></div><div class="shot-card-badge pending"></div></div>
+            <div class="shot-card"><div class="shot-card-title" style="width:55%"></div><div class="shot-card-sub" style="width:75%"></div><div class="shot-card-badge"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="shot-label">Service Calls</div>
+    </div>
+    <!-- Screenshot 3: Technician View -->
+    <div>
+      <div class="shot-frame">
+        <div class="shot-inner">
+          <div class="shot-status"><div class="shot-status-dot"></div></div>
+          <div class="shot-body">
+            <div class="shot-topbar" style="background:#34a853;"><div class="shot-topbar-line"></div><div class="shot-topbar-dot"></div></div>
+            <div style="background:rgba(255,255,255,.06);border-radius:6px;padding:8px 7px;margin-bottom:5px;">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+                <div style="width:20px;height:20px;border-radius:50%;background:var(--blue);flex-shrink:0;"></div>
+                <div style="flex:1;">
+                  <div style="height:3px;background:rgba(255,255,255,.6);border-radius:2px;width:70%;margin-bottom:3px;"></div>
+                  <div style="height:3px;background:rgba(255,255,255,.25);border-radius:2px;width:50%;"></div>
+                </div>
+              </div>
+              <div style="height:40px;background:rgba(255,255,255,.06);border-radius:5px;"></div>
+              <div style="height:18px;background:#1a73e8;border-radius:5px;margin-top:5px;"></div>
+            </div>
+            <div class="shot-card"><div class="shot-card-title" style="width:65%"></div><div class="shot-card-sub"></div></div>
+            <div class="shot-card"><div class="shot-card-title" style="width:50%"></div><div class="shot-card-sub" style="width:80%"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="shot-label">Technician View</div>
+    </div>
+    <!-- Screenshot 4: Job Details -->
+    <div>
+      <div class="shot-frame">
+        <div class="shot-inner">
+          <div class="shot-status"><div class="shot-status-dot"></div></div>
+          <div class="shot-body">
+            <div class="shot-topbar" style="background:#8e24aa;"><div class="shot-topbar-line"></div><div class="shot-topbar-dot"></div></div>
+            <div style="background:rgba(255,255,255,.08);border-radius:6px;padding:7px;margin-bottom:5px;">
+              <div style="height:3px;background:rgba(255,255,255,.6);border-radius:2px;width:80%;margin-bottom:4px;"></div>
+              <div style="height:3px;background:rgba(255,255,255,.3);border-radius:2px;width:55%;margin-bottom:6px;"></div>
+              <div style="display:flex;gap:4px;">
+                <div style="flex:1;height:14px;background:#ea4335;border-radius:4px;opacity:.85;"></div>
+                <div style="flex:1;height:14px;background:rgba(255,255,255,.1);border-radius:4px;"></div>
+              </div>
+            </div>
+            <div class="shot-card"><div class="shot-card-title"></div><div class="shot-card-sub" style="width:90%"></div><div class="shot-card-badge pending"></div></div>
+            <div style="height:28px;background:#1a73e8;border-radius:6px;margin-top:4px;display:flex;align-items:center;justify-content:center;">
+              <div style="height:3px;width:50%;background:rgba(255,255,255,.8);border-radius:2px;"></div>
+            </div>
+            <div class="shot-card" style="margin-top:5px;"><div class="shot-card-title" style="width:60%"></div><div class="shot-card-sub"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="shot-label">Job Details</div>
+    </div>
+    <!-- Screenshot 5: Upload Proof -->
+    <div>
+      <div class="shot-frame">
+        <div class="shot-inner">
+          <div class="shot-status"><div class="shot-status-dot"></div></div>
+          <div class="shot-body">
+            <div class="shot-topbar" style="background:#f57c00;"><div class="shot-topbar-line"></div><div class="shot-topbar-dot"></div></div>
+            <div style="height:52px;background:rgba(255,255,255,.06);border-radius:6px;margin-bottom:5px;display:flex;align-items:center;justify-content:center;border:1px dashed rgba(255,255,255,.2);">
+              <div style="width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;">
+                <div style="width:7px;height:7px;border-top:2px solid rgba(255,255,255,.6);border-right:2px solid rgba(255,255,255,.6);border-radius:1px;transform:rotate(-45deg) translate(-1px,1px);"></div>
+              </div>
+            </div>
+            <div class="shot-card"><div class="shot-card-title" style="width:75%"></div><div class="shot-card-sub"></div><div class="shot-card-badge" style="background:#f57c00;"></div></div>
+            <div class="shot-card"><div class="shot-card-title" style="width:55%"></div><div class="shot-card-sub" style="width:85%"></div></div>
+            <div style="height:22px;background:#34a853;border-radius:6px;margin-top:4px;display:flex;align-items:center;justify-content:center;">
+              <div style="height:3px;width:45%;background:rgba(255,255,255,.8);border-radius:2px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="shot-label">Upload Proof</div>
+    </div>
+    <!-- Screenshot 6: Reports -->
+    <div>
+      <div class="shot-frame">
+        <div class="shot-inner">
+          <div class="shot-status"><div class="shot-status-dot"></div></div>
+          <div class="shot-body">
+            <div class="shot-topbar" style="background:#00897b;"><div class="shot-topbar-line"></div><div class="shot-topbar-dot"></div></div>
+            <div style="display:flex;gap:3px;margin-bottom:6px;align-items:flex-end;height:38px;">
+              <div style="flex:1;background:#ea4335;border-radius:3px 3px 0 0;height:60%;opacity:.85;"></div>
+              <div style="flex:1;background:#1a73e8;border-radius:3px 3px 0 0;height:90%;"></div>
+              <div style="flex:1;background:#fbbc04;border-radius:3px 3px 0 0;height:45%;opacity:.9;"></div>
+              <div style="flex:1;background:#34a853;border-radius:3px 3px 0 0;height:75%;"></div>
+              <div style="flex:1;background:#8e24aa;border-radius:3px 3px 0 0;height:55%;opacity:.85;"></div>
+            </div>
+            <div class="shot-card"><div class="shot-card-title"></div><div class="shot-card-sub" style="width:70%"></div><div class="shot-card-badge"></div></div>
+            <div class="shot-card"><div class="shot-card-title" style="width:65%"></div><div class="shot-card-sub"></div><div class="shot-card-badge pending"></div></div>
+          </div>
+        </div>
+        <div class="shot-fab" style="background:#00897b;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+      </div>
+      <div class="shot-label">Reports</div>
+    </div>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<section class="section reveal delay1" id="sec-about">
+  <div class="sec-title">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    About This App
+  </div>
+  <p class="about-text collapsed" id="aboutText">HC Central is a professional business management application built specifically for home care and maintenance service companies. Designed by HC Care Technologies, the app empowers supervisors and field technicians to manage service calls end-to-end — from initial assignment to final resolution — all from a single, intuitive mobile interface. The platform features a smart urgency color system that helps teams prioritize critical tasks instantly. Technicians can upload job completion photos, supervisors can monitor all active calls in real time, and the entire workflow is streamlined to reduce delays and improve customer satisfaction. Whether you are managing a small team or a large fleet of technicians, HC Central scales with your operation and delivers consistent, trackable results every single time.</p>
+  <button class="read-more-btn" id="readMoreBtn" onclick="toggleAbout()">Read more</button>
+</section>
+
+<!-- FEATURES -->
+<section class="section reveal delay2" id="sec-features">
+  <div class="sec-title">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2.2" stroke-linecap="round"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+    Key Features
+  </div>
+  <div class="features-grid">
+    <div class="feat-card">
+      <div class="feat-icon blue">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a73e8" stroke-width="2.2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <div class="feat-body">
+        <div class="feat-title">Service Call Assignment</div>
+        <div class="feat-desc">Supervisors can create and assign service calls to the right technicians instantly with full job details attached.</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon red">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ea4335" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </div>
+      <div class="feat-body">
+        <div class="feat-title">Urgency Color System</div>
+        <div class="feat-desc">Visual priority indicators — red for critical, amber for pending, green for completed — make triage effortless at a glance.</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon orange">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f57c00" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      </div>
+      <div class="feat-body">
+        <div class="feat-title">Technician Photo Uploads</div>
+        <div class="feat-desc">Field technicians can capture and upload job completion photos directly within the app for verified proof of service.</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon purple">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8e24aa" stroke-width="2.2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </div>
+      <div class="feat-body">
+        <div class="feat-title">Supervisor Monitoring</div>
+        <div class="feat-desc">A dedicated supervisor dashboard provides a full real-time overview of all ongoing, completed, and pending service calls.</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon teal">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00897b" stroke-width="2.2" stroke-linecap="round"><path d="M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+      </div>
+      <div class="feat-body">
+        <div class="feat-title">Real-Time Tracking</div>
+        <div class="feat-desc">Track technician status and job progress in real time, ensuring no call goes unattended or falls through the cracks.</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon green">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34a853" stroke-width="2.2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <div class="feat-body">
+        <div class="feat-title">End-to-End Workflow</div>
+        <div class="feat-desc">From service request to job closure, every step is tracked, logged, and verifiable — keeping your team fully accountable.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECURITY -->
+<section class="section reveal delay3" id="sec-security">
+  <div class="sec-title">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2.2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    Safety & Security
+  </div>
+  <div class="security-card">
+    <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#34a853" stroke-width="1.8" stroke-linecap="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      <polyline points="9 12 11 14 15 10" stroke-width="2.2"/>
+    </svg>
+    <div class="security-text">
+      <h4>This App is Safe &amp; Secure</h4>
+      <p>HC Central is a trusted business tool from HC Care Technologies. No ads, no data selling, no hidden permissions. Your data stays private and protected at all times.</p>
+    </div>
+  </div>
+</section>
+
+<!-- DEVELOPER -->
+<section class="section reveal delay4" id="sec-dev">
+  <div class="sec-title">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2.2" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+    Developer
+  </div>
+  <div class="dev-card">
+    <div class="dev-avatar">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </div>
+    <div>
+      <div class="dev-card-name">MD Dilshad</div>
+      <div class="dev-card-sub">HC Care Technologies · Business &amp; Service Management</div>
+    </div>
+  </div>
+</section>
+
+<div class="page-bottom-pad"></div>
+
+<!-- STICKY BOTTOM CTA -->
+<div class="bottom-cta">
+  <button class="bottom-cta-btn" onclick="downloadAPK(this)" aria-label="Download HC Central">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>
+    Install HC Central — Free
+  </button>
+</div>
+
+<!-- MENU OVERLAY -->
+<div class="dd-overlay" id="ddOverlay" onclick="closeMenu()"></div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">Download starting...</div>
+
+<script>
+function toggleMenu(){
+  const m=document.getElementById('dropdownMenu');
+  const o=document.getElementById('ddOverlay');
+  const open=m.classList.toggle('open');
+  o.classList.toggle('open',open);
+}
+function closeMenu(){
+  document.getElementById('dropdownMenu').classList.remove('open');
+  document.getElementById('ddOverlay').classList.remove('open');
+}
+function scrollTo(id){
+  document.getElementById(id).scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+"https://github.com/diloyt1256/hc-central-app/releases/download/v1.0.0/app-debug.apk";
+
+function downloadAPK(btn){
+  // Ripple
+  const r=document.createElement('span');
+  r.className='ripple';
+  const rect=btn.getBoundingClientRect();
+  const sz=Math.max(rect.width,rect.height);
+  r.style.cssText=`width:${sz}px;height:${sz}px;left:${(rect.width-sz)/2}px;top:${(rect.height-sz)/2}px;`;
+  btn.appendChild(r);
+  setTimeout(()=>r.remove(),600);
+  // Download
+  const a=document.createElement('a');
+  a.href=APK_URL;
+  a.download='HC-Central-v1.0.0.apk';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  showToast('Download starting...');
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// Scroll reveal
+const revealEls=document.querySelectorAll('.reveal');
+const io=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target);}});
+},{threshold:.08});
+revealEls.forEach(el=>io.observe(el));
+
+// Read more
+let expanded=false;
+function toggleAbout(){
+  const txt=document.getElementById('aboutText');
+  const btn=document.getElementById('readMoreBtn');
+  expanded=!expanded;
+  txt.classList.toggle('collapsed',!expanded);
+  btn.textContent=expanded?'Read less':'Read more';
+}
+
+// Fade in on load
+window.addEventListener('load',()=>{
+  document.querySelectorAll('.reveal').forEach(el=>{
+    const rect=el.getBoundingClientRect();
+    if(rect.top<window.innerHeight)el.classList.add('visible');
+  });
+});
+</script>
+</body>
+</html>
